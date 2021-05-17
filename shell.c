@@ -27,11 +27,11 @@ int main(void)
         int len;
         
 	// command-line prompt
-	printf("%s","\033[32m");	//change color to green
+	printf("%s","\033[35m");	//change color to green
         printf("%s@%s", getpwuid(getuid())->pw_name,hostname);
 	printf("%s","\033[0m");		//change color to white
 	printf(":");
-	printf("%s","\033[34m");	//change color to blue
+	printf("%s","\033[36m");	//change color to blue
 	printf("Myshell ");
 	printf("%s","\033[0m");
 	printf("&");
@@ -60,13 +60,27 @@ int main(void)
             if (cpid != pid) {
                 fprintf(stderr, "waitpid failed\n");        
             }
-            printf("Child process terminated\n");
+	                printf("Child process terminated\n");
             if (WIFEXITED(status)) {
                 printf("Exit status is %d\n", WEXITSTATUS(status)); 
             }
+	    
+	    // Use exit command to close the shell
+	    if(strcmp(args[0], "exit") == 0){
+		    return 0;
+	    }
+
+
         }
         else {  /* child */
             ret = execve(args[0], args, NULL);
+
+	    // Use exit command to colse the shell
+	    if(strcmp(args[0], "exit") == 0){
+		    printf("Myshell is closed\n");
+		    return 0;
+	    }
+
             if (ret < 0) {
                 fprintf(stderr, "execve failed\n");   
                 return 1;
