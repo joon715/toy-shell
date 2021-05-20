@@ -9,11 +9,13 @@
 
 #define MAX_LEN_LINE    100
 #define LEN_HOSTNAME	30
+#define MAX_PATH	1024	
 
 int main(void)
 {
     char command[MAX_LEN_LINE];
     char *args[] = {command, NULL};
+    char current_address[MAX_LEN_LINE];
     int ret, status;
     pid_t pid, cpid;
 
@@ -21,6 +23,10 @@ int main(void)
     char hostname[LEN_HOSTNAME + 1];
     memset(hostname, 0x00, sizeof(hostname));
     gethostname(hostname, LEN_HOSTNAME);
+
+    // get current address
+    char strBuffer[MAX_PATH];
+    getcwd(strBuffer, MAX_PATH);
     
     while (true) {
         char *s;
@@ -32,9 +38,10 @@ int main(void)
 	printf("%s","\033[0m");		//change color to white
 	printf(":");
 	printf("%s","\033[36m");	//change color to blue
-	printf("Myshell ");
+	printf("%s/", strBuffer);
+	printf("Myshell");
 	printf("%s","\033[0m");
-	printf("&");
+	printf("$ ");
 
         s = fgets(command, MAX_LEN_LINE, stdin);
         if (s == NULL) {
@@ -70,22 +77,41 @@ int main(void)
 		    return 0;
 	    }
 
-
         }
         else {  /* child */
-            ret = execve(args[0], args, NULL);
-
 	    // Use exit command to colse the shell
-	    if(strcmp(args[0], "exit") == 0){
+	    if(!strcmp(args[0], "exit")){
 		    printf("Myshell is closed\n");
 		    return 0;
 	    }
 
-            if (ret < 0) {
-                fprintf(stderr, "execve failed\n");   
-                return 1;
+	    // Incarnate "ls" command
+	    if(!strcmp(args[0], "ls")){
+		    ret = execve("/usr/bin/ls", args, NULL);
+		    if (ret < 0) {
+			fprintf(stderr, "execve failed\n");   
+			return 1;
+		    }
+	    }
+
+	    // Incarnate "pwd" command
+	    if(!strcmp(args[0], "pwd")){
+		    ret = execve("/usr/bin/pwd", args, NULL);
+		    if (ret < 0) {
+			fprintf(stderr, "execve failed\n");   
+			return 1;
+		    }
             }
-        } 
+	    
+
+	    ret = execve(args[0], args, NULL);
+
+	    if (ret < 0) {
+		fprintf(stderr, "execve failed\n");   
+		return 1;
+		} 
+	    }
     }
+
     return 0;
 }
