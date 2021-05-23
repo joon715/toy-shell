@@ -36,6 +36,9 @@ int main(void)
         char *s;
         int len, args_len;
 	char **args = NULL;
+	i = 0;
+	j = 0;
+	count = 0;
 
 	// command-line prompt
 	printf("%s","\033[35m");	//change color to green
@@ -70,8 +73,8 @@ int main(void)
             command[len - 1] = '\0'; 
         }
          
-        printf("[%s]\n", command);
-        printf("%d\n", len);
+        printf("->Command : [%s]\n", command);
+        printf("->Length of command : %d\n", len);
 
 	// Malloc args
 	args = (char **)malloc(sizeof(char *) * (args_len + 1));
@@ -95,12 +98,11 @@ int main(void)
 	// set the end of args array as "NULL"
 	args[args_len] = NULL;
 	
-	printf("[");
-	for (i = 0; i < (args_len - 1); i++)
-		printf("%s ", args[i]);
-	printf("%s]\n", args[args_len - 1]);
+	for (i = 0; i < args_len; i++)
+		printf("->arg%d : [%s]\n",i ,args[i]);
 
            
+	printf("<<<<<Execute Command>>>>>\n");
         pid = fork();
         if (pid < 0) {
             fprintf(stderr, "fork failed\n");
