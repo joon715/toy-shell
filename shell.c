@@ -6,18 +6,22 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <pwd.h>
+#include <errno.h>
 
 #define MAX_LEN_LINE    100
 #define LEN_HOSTNAME	30
 #define MAX_PATH	1024	
 
+extern char **environ;
+
 int main(void)
 {
     char command[MAX_LEN_LINE];
-    char *args[] = {command, NULL};
+    char arg1[MAX_LEN_LINE], arg2[MAX_LEN_LINE];
     char current_address[MAX_LEN_LINE];
     int ret, status;
     pid_t pid, cpid;
+    int count = 0, i = 0, j = 0;;
 
     // get host name
     char hostname[LEN_HOSTNAME + 1];
@@ -30,8 +34,9 @@ int main(void)
     
     while (true) {
         char *s;
-        int len;
-        
+        int len, args_len;
+	char **args = NULL;
+
 	// command-line prompt
 	printf("%s","\033[35m");	//change color to green
         printf("%s@%s", getpwuid(getuid())->pw_name,hostname);
@@ -43,6 +48,7 @@ int main(void)
 	printf("%s","\033[0m");
 	printf("$ ");
 
+	// input command
         s = fgets(command, MAX_LEN_LINE, stdin);
         if (s == NULL) {
             fprintf(stderr, "fgets failed\n");
@@ -50,13 +56,51 @@ int main(void)
         }
         
         len = strlen(command);
-        printf("%d\n", len);
+
+	// count the number of arguments
+	while(command[i] != '\n'){
+		if(command[i] == ' ')
+			count++;
+		i++;	
+	}
+	args_len = count + 1;
+
+	// set the end of command array as NULL
         if (command[len - 1] == '\n') {
             command[len - 1] = '\0'; 
         }
-        
+         
         printf("[%s]\n", command);
-      
+        printf("%d\n", len);
+
+	// Malloc args
+	args = (char **)malloc(sizeof(char *) * (args_len + 1));
+	for(i = 0; i < (args_len + 1); i++){
+		args[i] = (char *)malloc(sizeof(char) * 30);
+	}
+
+	count = 0;
+	for(i = 0; i < len; i++){
+		if(command[i] == ' '){
+			args[count][j] = '\0';
+			count++;
+			j = 0;
+		}
+		else{
+			args[count][j] = command[i];
+			j++;
+		}
+	}
+
+	// set the end of args array as "NULL"
+	args[args_len] = NULL;
+	
+	printf("[");
+	for (i = 0; i < (args_len - 1); i++)
+		printf("%s ", args[i]);
+	printf("%s]\n", args[args_len - 1]);
+
+           
         pid = fork();
         if (pid < 0) {
             fprintf(stderr, "fork failed\n");
@@ -87,7 +131,7 @@ int main(void)
 
 	    // Incarnate "ls" command
 	    if(!strcmp(args[0], "ls")){
-		    ret = execve("/usr/bin/ls", args, NULL);
+		    ret = execve("/usr/bin/ls", args, environ);
 		    if (ret < 0) {
 			fprintf(stderr, "execve failed\n");   
 			return 1;
@@ -111,6 +155,13 @@ int main(void)
 		return 1;
 		} 
 	    }
+
+	// free dynamic array
+	for(i = 0; i < (args_len + 1); i++)
+		free(args[i]);
+	free(args);
+
+
     }
 
     return 0;

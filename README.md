@@ -1,6 +1,6 @@
 # toy-shell
 
-Dveloped by Woojoong Kim (20153330)
+Developed by Woojoong Kim (20153330)
 Developed in WSL2 environment
 
 
@@ -18,3 +18,7 @@ Developed in WSL2 environment
 
 4. I upgrade the terminal to use simple command without command directory
 -> Upgrade the simple commands : "ls", "pwd"
+
+5. I upgrade the terminal can recognize multi arguments command (ls -l)
+-> Using 2-dimenssion array to contain the arguments
+-> Because of internal problem it only works properly once.
